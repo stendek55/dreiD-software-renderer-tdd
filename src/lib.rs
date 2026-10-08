@@ -28,6 +28,14 @@ impl Vector3D {
 
         Vector3D { x, y, z }
     }
+
+    fn sub(&self, anderer: &Vector3D) -> Self {
+        let x = self.x - anderer.x;
+        let y = self.y - anderer.y;
+        let z = self.z - anderer.z;
+
+        Vector3D { x, y, z }
+    }
 }
 
 #[cfg(test)]
@@ -72,6 +80,20 @@ mod tests {
 
         // Then: Erwarten wir die komponentenweise Summe
         let expected = Vector3D::neu(5.0, 7.0, 9.0);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_vector_subtraction() {
+        // Given: Zwei Vektoren im Raum
+        let v1 = Vector3D::neu(5.0, 5.0, 5.0);
+        let v2 = Vector3D::neu(1.0, 2.0, 3.0);
+
+        // When: Wir v2 von v1 abziehen
+        let result = v1.sub(&v2);
+
+        // Then: Erwarten wir die komponentenweise Differenz
+        let expected = Vector3D::neu(4.0, 3.0, 2.0);
         assert_eq!(result, expected);
     }
 }
