@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "dreiD-software-renderer-tdd"
+name = "drei_d_software_renderer_tdd"
 version = "0.1.0"
