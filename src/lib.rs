@@ -125,11 +125,13 @@ impl Vector3D {
     }
 }
 
+#[derive(Debug, PartialEq)]
 struct Matrix4D {
     m: [[f32; 4]; 4],
 }
 
 impl Matrix4D {
+    //konstruktor -> Einheitsmatrix
     fn identitaet() -> Self {
         Matrix4D {
             m: [
@@ -139,6 +141,11 @@ impl Matrix4D {
                 [0.0, 0.0, 0.0, 1.0],
             ],
         }
+    }
+
+    //konstruktor -> Nullmatrix
+    fn nuller() -> Self {
+        Matrix4D { m: [[0.0; 4]; 4] }
     }
 
     /// Multipliziert die Matrix mit einem 3D-Punkt unter Verwendung homogener Koordinaten.
@@ -163,8 +170,35 @@ impl Matrix4D {
 
         Vector3D { x, y, z }
     }
+
+    /// Mathematisch: Multiplikation zweier 4x4-Matrizen (Matrixprodukt).
+    ///
+    /// Berechnet die Kombination zweier geometrischer Transformationen. Das Ergebnis
+    /// ist eine neue Matrix, die beide Transformationen nacheinander ausführt.
+    ///
+    /// # Mathematische Formel & Prinzip (Zeile mal Spalte)
+    ///
+    /// # Wichtige Eigenschaft (Nicht kommutativ)
+    /// Die Matrixmultiplikation ist nicht kommutativ (`A * B != B * A`). Die Reihenfolge
+    /// ist entscheidend dafür, ob ein Objekt erst rotiert und dann verschoben wird,
+    /// oder umgekehrt.
+    fn multipliziere_matrix(&self, andere: &Matrix4D) -> Matrix4D {
+        let mut mtrx = Matrix4D::nuller();
+        for zln in 0..=3 {
+            for spltn in 0..=3 {
+                for indx in 0..=3 {
+                    mtrx.m[zln][spltn] += self.m[zln][indx] * andere.m[indx][spltn];
+                }
+            }
+        }
+
+        mtrx
+    }
 }
 
+//#########################################################################
+//###########################-----UNIT-TESTS-----##########################
+//#########################################################################
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -364,5 +398,29 @@ mod tests {
             v3.laenge_quadriert(),
             "skalarprodukt mit sich selbst hat falsche länge!"
         );
+    }
+
+    #[test]
+    fn test_matrix_multiplikation_isolierte_berechnung() {
+        // Given: Eine beliebige Test-Matrix mit bekannten Werten
+        let mut m1 = Matrix4D::identitaet();
+        m1.m[0][0] = 1.0;
+        m1.m[0][1] = 2.0;
+        m1.m[0][2] = 3.0;
+        m1.m[0][3] = 4.0;
+        m1.m[1][0] = 5.0;
+        m1.m[1][1] = 6.0;
+        m1.m[1][2] = 7.0;
+        m1.m[1][3] = 8.0;
+        // ... (Rest ist Einheitsmatrix)
+
+        // Und Given: Die mathematische Einheitsmatrix (Identität)
+        let i = Matrix4D::identitaet();
+
+        // When: Wir eine Matrix mit der Einheitsmatrix multiplizieren (M * I = M)
+        let result = m1.multipliziere_matrix(&i);
+
+        // Then: Das Ergebnis MUSS exakt der ursprünglichen Matrix entsprechen
+        assert_eq!(result, m1);
     }
 }
