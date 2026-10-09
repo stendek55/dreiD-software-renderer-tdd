@@ -103,6 +103,26 @@ impl Vector3D {
             }
         }
     }
+
+    /// Mathematisch: Skalarprodukt (Dot Product) zweier 3D-Vektoren.
+    ///
+    /// Das Skalarprodukt multipliziert zwei Vektoren komponentenweise und
+    /// addiert die Ergebnisse. Es liefert als Resultat eine einzelne Zahl (Skalar).
+    ///
+    /// # Mathematische Formel
+    /// Algebraisch:
+    /// a · b = (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
+    ///
+    /// Geometrisch:
+    /// a · b = ||a|| * ||b|| * cos(θ)  (wobei θ der Winkel zwischen den Vektoren ist)
+    ///
+    /// # Geometrische Bedeutung (bei normalisierten Vektoren)
+    /// * ** 1.0**: Vektoren sind absolut identisch (Parallel, Winkel 0°).
+    /// * ** 0.0**: Vektoren stehen exakt senkrecht aufeinander (Orthogonal, Winkel 90°).
+    /// * **-1.0**: Vektoren zeigen in exakt entgegengesetzte Richtungen (Winkel 180°).
+    fn skalarprodukt(&self, anderer: &Vector3D) -> f32 {
+        (self.x * anderer.x) + (self.y * anderer.y) + (self.z * anderer.z)
+    }
 }
 
 struct Matrix4D {
@@ -320,5 +340,29 @@ mod tests {
         // Then: Jede Komponente muss durch die Länge (5.0) geteilt worden sein
         let expected = Vector3D::neu(0.6, 0.0, 0.8);
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_vector_skalarprodukt_orthogonal_und_parallel() {
+        // Given: Zwei orthogonale (senkrechte) Vektoren
+        let v1 = Vector3D::neu(1.0, 0.0, 0.0);
+        let v2 = Vector3D::neu(0.0, 1.0, 0.0);
+
+        // When/Then: Das Skalarprodukt (Dot Product) von senkrechten Vektoren MUSS 0.0 sein
+        assert_eq!(
+            v1.skalarprodukt(&v2),
+            0.0,
+            "skalarprodukt von senkrechten vektor ist nicht 0!"
+        );
+
+        // Given: Zwei parallele Vektoren
+        let v3 = Vector3D::neu(2.0, 3.0, -1.0);
+
+        // When/Then: Das Skalarprodukt mit sich selbst entspricht der quadrierten Länge
+        assert_eq!(
+            v3.skalarprodukt(&v3),
+            v3.laenge_quadriert(),
+            "skalarprodukt mit sich selbst hat falsche länge!"
+        );
     }
 }
