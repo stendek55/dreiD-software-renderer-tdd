@@ -148,25 +148,39 @@ impl Matrix4D {
         Matrix4D { m: [[0.0; 4]; 4] }
     }
 
-    /// Multipliziert die Matrix mit einem 3D-Punkt unter Verwendung homogener Koordinaten.
+    /// Mathematisch: Multiplikation der Matrix mit einem 3D-Punkt über homogene Koordinaten (w = 1.0).
     ///
-    /// # Mathematische Erklärung
-    /// In der 3D-Grafik wird ein Punkt (x, y, z) für die Matrixmultiplikation virtuell
-    /// um eine vierte Komponente (w = 1) erweitert. Wenn die Matrix eine reine
-    /// Translationsmatrix (Verschiebung) ist, basiert sie auf einer Einheitsmatrix:
+    /// (Skalierung, Rotation und Verschiebung/Translation) auf einen dreidimensionalen Punkt an.
     ///
-    /// | 1  0  0  m[0][3] |   | x |   | 1*x + 0*y + 0*z + m[0][3]*1 |   | x + m[0][3] |
-    /// | 0  1  0  m[1][3] | * | y | = | 0*x + 1*y + 0*z + m[1][3]*1 | = | y + m[1][3] |
-    /// | 0  0  1  m[2][3] |   | z |   | 0*x + 0*y + 1*z + m[2][3]*1 |   | z + m[2][3] |
-    /// | 0  0  0     1    |   | 1 |   | 0*x + 0*y + 0*z +    1*1    |   |      1      |
+    /// # Verwendung im Renderer
+    /// Das ist die zentrale Funktion, um die Eckpunkte (Vertices) deiner 3D-Modelle
+    /// durch den Raum zu bewegen, zu drehen und schließlich in das Sichtfeld der Kamera zu rücken.
     ///
-    /// Da die Multiplikation mit 1 und 0 das Ergebnis nicht verändert, kürzt sich die
-    /// Matrixmultiplikation in diesem Spezialfall (keine Rotation/Skalierung) zu einer
-    /// einfachen komponentenweisen Addition der Verschiebungswerte in Spalte 4 (Index 3) ab.
+    /// # Mathematischer Hintergrund (Homogene Koordinaten)
+    /// Ein 3D-Punkt besitzt eigentlich nur drei Komponenten (x, y, z). Damit er mit einer
+    /// 4x4-Matrix multipliziert werden kann, wird er virtuell um eine vierte Komponente
+    /// erweitert: die homogene Koordinate w = 1.0.
+    ///
+    /// Die Berechnung für jede Koordinate entspricht dem Skalarprodukt einer Matrixzeile
+    /// mit dem erweiterten Vektor (x, y, z, 1.0):
+    ///
+    /// Da am Ende die vierte Komponente (w) bei Standardtransformationen 1.0 bleibt,
+    /// gibt die Funktion direkt einen klassischen `Vector3D` mit den neuen Raumkoordinaten zurück.
     fn multipliziere_punkt(&self, punkt: &Vector3D) -> Vector3D {
-        let x = punkt.x + self.m[0][3];
-        let y = punkt.y + self.m[1][3];
-        let z = punkt.z + self.m[2][3];
+        let x = (self.m[0][0] * punkt.x)
+            + (self.m[0][1] * punkt.y)
+            + (self.m[0][2] * punkt.z)
+            + self.m[0][3];
+
+        let y = (self.m[1][0] * punkt.x)
+            + (self.m[1][1] * punkt.y)
+            + (self.m[1][2] * punkt.z)
+            + self.m[1][3];
+
+        let z = (self.m[2][0] * punkt.x)
+            + (self.m[2][1] * punkt.y)
+            + (self.m[2][2] * punkt.z)
+            + self.m[2][3];
 
         Vector3D { x, y, z }
     }
