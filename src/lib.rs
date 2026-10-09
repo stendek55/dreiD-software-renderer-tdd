@@ -91,6 +91,10 @@ impl Matrix4D {
             ],
         }
     }
+
+    fn multipliziere_punkt(&self, punkt: &Vector3D) -> Vector3D {
+        unimplemented!()
+    }
 }
 
 #[cfg(test)]
@@ -223,5 +227,37 @@ mod tests {
 
         assert_eq!(m.m[0][1], 0.0);
         assert_eq!(m.m[3][2], 0.0);
+    }
+
+    #[test]
+    fn test_matrix_multiplikation_mit_identitaet() {
+        // Given: Eine Identitätsmatrix und ein beliebiger Vektor (als Punkt, w = 1.0)
+        let m = Matrix4D::identitaet();
+        let v = Vector3D::neu(2.5, -3.0, 4.2);
+
+        // When: Wir den Vektor mit der Identitätsmatrix multiplizieren
+        let result = m.multipliziere_punkt(&v);
+
+        // Then: Der Vektor darf sich absolut nicht verändert haben
+        assert_eq!(result, v);
+    }
+
+    #[test]
+    fn test_matrix_punkt_verschiebung_translation() {
+        // Given: Eine Translationsmatrix, die um X=2, Y=3, Z=-1 verschiebt
+        // (Die Verschiebewerte stehen in der letzten Spalte der Matrix)
+        let mut m = Matrix4D::identitaet();
+        m.m[0][3] = 2.0; // Translation X
+        m.m[1][3] = 3.0; // Translation Y
+        m.m[2][3] = -1.0; // Translation Z
+
+        let punkt = Vector3D::neu(1.0, 1.0, 1.0);
+
+        // When: Wir den Punkt transformieren
+        let result = m.multipliziere_punkt(&punkt);
+
+        // Then: Erwarten wir die addierten Verschiebungen
+        let expected = Vector3D::neu(3.0, 4.0, 0.0);
+        assert_eq!(result, expected);
     }
 }
