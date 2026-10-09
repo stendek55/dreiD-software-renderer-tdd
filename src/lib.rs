@@ -92,8 +92,27 @@ impl Matrix4D {
         }
     }
 
+    /// Multipliziert die Matrix mit einem 3D-Punkt unter Verwendung homogener Koordinaten.
+    ///
+    /// # Mathematische Erklärung
+    /// In der 3D-Grafik wird ein Punkt (x, y, z) für die Matrixmultiplikation virtuell
+    /// um eine vierte Komponente (w = 1) erweitert. Wenn die Matrix eine reine
+    /// Translationsmatrix (Verschiebung) ist, basiert sie auf einer Einheitsmatrix:
+    ///
+    /// | 1  0  0  m[0][3] |   | x |   | 1*x + 0*y + 0*z + m[0][3]*1 |   | x + m[0][3] |
+    /// | 0  1  0  m[1][3] | * | y | = | 0*x + 1*y + 0*z + m[1][3]*1 | = | y + m[1][3] |
+    /// | 0  0  1  m[2][3] |   | z |   | 0*x + 0*y + 1*z + m[2][3]*1 |   | z + m[2][3] |
+    /// | 0  0  0     1    |   | 1 |   | 0*x + 0*y + 0*z +    1*1    |   |      1      |
+    ///
+    /// Da die Multiplikation mit 1 und 0 das Ergebnis nicht verändert, kürzt sich die
+    /// Matrixmultiplikation in diesem Spezialfall (keine Rotation/Skalierung) zu einer
+    /// einfachen komponentenweisen Addition der Verschiebungswerte in Spalte 4 (Index 3) ab.
     fn multipliziere_punkt(&self, punkt: &Vector3D) -> Vector3D {
-        unimplemented!()
+        let x = punkt.x + self.m[0][3];
+        let y = punkt.y + self.m[1][3];
+        let z = punkt.z + self.m[2][3];
+
+        Vector3D { x, y, z }
     }
 }
 
