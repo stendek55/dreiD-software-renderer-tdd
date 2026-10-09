@@ -76,6 +76,23 @@ impl Vector3D {
     }
 }
 
+struct Matrix4D {
+    m: [[f32; 4]; 4],
+}
+
+impl Matrix4D {
+    fn identitaet() -> Self {
+        Matrix4D {
+            m: [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0],
+            ],
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -191,5 +208,20 @@ mod tests {
         // Then: Erwarten wir den Vektor (11.0, 2.0, -8.0)
         let expected = Vector3D::neu(11.0, 2.0, -8.0);
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_matrix_identitaet_erzeugen() {
+        // When: Wir eine Identitätsmatrix anfordern
+        let m = Matrix4D::identitaet();
+
+        // Then: Müssen die Hauptdiagonalen 1.0 sein, der Rest 0.0
+        assert_eq!(m.m[0][0], 1.0);
+        assert_eq!(m.m[1][1], 1.0);
+        assert_eq!(m.m[2][2], 1.0);
+        assert_eq!(m.m[3][3], 1.0);
+
+        assert_eq!(m.m[0][1], 0.0);
+        assert_eq!(m.m[3][2], 0.0);
     }
 }
