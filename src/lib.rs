@@ -13,6 +13,9 @@ impl Vector3D {
         Vector3D { x, y, z }
     }
 
+    /// Mathematisch: Skalierung (Multiplikation mit einem Skalar).
+    /// Verlängert oder verkürzt den Vektor um den Faktor `factor`, ohne seine Richtung zu ändern.
+    /// Bei einem negativen Faktor dreht sich die Richtung des Vektors um 180 Grad um.
     fn scale(&self, factor: f32) -> Self {
         let x = factor * self.x;
         let y = factor * self.y;
@@ -21,6 +24,9 @@ impl Vector3D {
         Vector3D { x, y, z }
     }
 
+    /// Mathematisch: Vektoraddition.
+    /// Berechnet die komponentenweise Summe zweier Vektoren.
+    /// Geometrisch entspricht dies dem Hintereinanderhängen der beiden Vektorpfeile im Raum.
     fn add(&self, anderer: &Vector3D) -> Self {
         let x = self.x + anderer.x;
         let y = self.y + anderer.y;
@@ -29,6 +35,10 @@ impl Vector3D {
         Vector3D { x, y, z }
     }
 
+    /// Mathematisch: Vektorsubtraktion.
+    /// Berechnet die komponentenweise Differenz zweier Vektoren.
+    /// Geometrisch ergibt dies den Richtungsvektor, der von der Spitze des Vektors `anderer`
+    /// direkt zur Spitze des Vektors `self` zeigt (wichtig für Abstands- und Blickrichtungen).
     fn sub(&self, anderer: &Vector3D) -> Self {
         let x = self.x - anderer.x;
         let y = self.y - anderer.y;
@@ -37,14 +47,26 @@ impl Vector3D {
         Vector3D { x, y, z }
     }
 
+    /// Mathematisch: Quadrierte Euklidische Norm (Skalarprodukt des Vektors mit sich selbst).
+    /// Berechnet die Summe der quadrierten Komponenten (x² + y² + z²).
+    /// Dient im Renderer als performancefreundlicher Ersatz für Längenvergleiche,
+    /// da hierbei die rechenintensive Quadratwurzel entfällt.
     fn laenge_quadriert(&self) -> f32 {
         (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
     }
 
+    /// Mathematisch: Euklidische Norm (Der Betrag des Vektors).
+    /// Berechnet die reelle, geometrische Länge des Vektors im dreidimensionalen Raum
+    /// durch Anwendung des Satzes von Pythagoras (Wurzel aus der quadrierten Länge).
     fn laenge(&self) -> f32 {
         self.laenge_quadriert().sqrt()
     }
 
+    /// Mathematisch: Kreuzprodukt (Vektorprodukt).
+    /// Erzeugt einen neuen Vektor, der geometrisch perfekt senkrecht (orthogonal) auf beiden
+    /// Ausgangsvektoren steht. Die Richtung folgt der Rechten-Hand-Regel.
+    /// Die Länge des Ergebnisvektors entspricht dem Flächeninhalt des Parallelogramms,
+    /// das von beiden Vektoren aufgespannt wird (essenziell für Dreiecksnormalen und Kamerasysteme).
     fn cross(&self, anderer: &Vector3D) -> Vector3D {
         let x = (self.y * anderer.z) - (self.z * anderer.y);
         let y = (self.z * anderer.x) - (self.x * anderer.z);
