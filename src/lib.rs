@@ -44,6 +44,14 @@ impl Vector3D {
     fn laenge(&self) -> f32 {
         self.laenge_quadriert().sqrt()
     }
+
+    fn cross(&self, anderer: &Vector3D) -> Vector3D {
+        let x = (self.y * anderer.z) - (self.z * anderer.y);
+        let y = (self.z * anderer.x) - (self.x * anderer.z);
+        let z = (self.x * anderer.y) - (self.y * anderer.x);
+
+        Vector3D { x, y, z }
+    }
 }
 
 #[cfg(test)]
@@ -127,5 +135,39 @@ mod tests {
 
         // Then: Erwarten wir die Quadratwurzel aus 25.0, also 5.0
         assert_eq!(result, 5.0);
+    }
+
+    #[test]
+    fn test_vector_kreuzprodukt_standard_achsen() {
+        // Given: Die Standard-Achsen des Koordinatensystems
+        let x_achse = Vector3D::neu(1.0, 0.0, 0.0);
+        let y_achse = Vector3D::neu(0.0, 1.0, 0.0);
+
+        // When: Wir das Kreuzprodukt (Cross Product) aus X und Y berechnen
+        let result = x_achse.cross(&y_achse);
+        dbg!(&result);
+
+        // Then: In einem rechtshändigen Koordinatensystem MUSS das die Z-Achse ergeben
+        let expected = Vector3D::neu(0.0, 0.0, 1.0);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_vector_kreuzprodukt_beliebig() {
+        // Given: Zwei beliebige Vektoren im Raum
+        let v1 = Vector3D::neu(2.0, 1.0, 3.0);
+        let v2 = Vector3D::neu(4.0, -2.0, 5.0);
+
+        // When: Wir das Kreuzprodukt berechnen
+        // Mathematisch:
+        // cx = (1 * 5) - (3 * -2) = 5 - (-6) = 11
+        // cy = (3 * 4) - (2 * 5)  = 12 - 10   = 2
+        // cz = (2 * -2) - (1 * 4) = -4 - 4    = -8
+        let result = v1.cross(&v2);
+        dbg!(&result);
+
+        // Then: Erwarten wir den Vektor (11.0, 2.0, -8.0)
+        let expected = Vector3D::neu(11.0, 2.0, -8.0);
+        assert_eq!(result, expected);
     }
 }
