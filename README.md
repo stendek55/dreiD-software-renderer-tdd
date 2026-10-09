@@ -1,3 +1,5 @@
+# ***.....in bearbeitung.....***
+---
 # 3D Software-Renderer
 
 Ein eigenständiges Übungsprojekt zur Implementierung einer dreidimensionalen Grafik-Engine von Grund auf in Rust. Das Projekt verzichtet konsequent auf externe Mathematik- oder Grafik-Bibliotheken (Zero-Crates-Ansatz), um die zugrundeliegende lineare Algebra, die Rendering-Pipeline und Algorithmen vollständig im Eigenbau zu durchdringen.
