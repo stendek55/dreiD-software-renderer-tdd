@@ -319,12 +319,6 @@ mod tests {
 
         // Then: Jede Komponente muss durch die Länge (5.0) geteilt worden sein
         let expected = Vector3D::neu(0.6, 0.0, 0.8);
-
-        // Da f32-Präzision ungenau sein kann, nutzen wir eine kleine Toleranz (Epsilon)
-        let epsilon = 1e-6;
-        assert!((result.x - expected.x).abs() < epsilon);
-        assert!((result.y - expected.y).abs() < epsilon);
-        assert!((result.z - expected.z).abs() < epsilon);
-        assert!((result.laenge() - 1.0).abs() < epsilon);
+        assert_eq!(result, expected);
     }
 }
