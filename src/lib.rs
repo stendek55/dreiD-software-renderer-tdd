@@ -423,4 +423,29 @@ mod tests {
         // Then: Das Ergebnis MUSS exakt der ursprünglichen Matrix entsprechen
         assert_eq!(result, m1);
     }
+
+    #[test]
+    fn test_matrix_multiplikation_vollstaendig() {
+        // Given: Zwei Matrizen. Eine skaliert, die andere verschiebt.
+        let mut m_skalierung = Matrix4D::identitaet();
+        m_skalierung.m[0][0] = 2.0; // Skaliere X mal 2
+        m_skalierung.m[1][1] = 2.0; // Skaliere Y mal 2
+        m_skalierung.m[2][2] = 2.0; // Skaliere Z mal 2
+
+        let mut m_translation = Matrix4D::identitaet();
+        m_translation.m[0][3] = 5.0; // Verschiebe X um 5
+
+        // When: Wir beide Matrizen miteinander multiplizieren (Kombination)
+        // Mathematisch: kombinierte_matrix = m_translation * m_skalierung
+        let kombinierte_matrix = m_translation.multipliziere_matrix(&m_skalierung);
+
+        // Ein Punkt bei (1, 1, 1) sollte erst auf (2, 2, 2) skaliert
+        // und dann auf X um 5 verschoben werden -> (7, 2, 2)
+        let punkt = Vector3D::neu(1.0, 1.0, 1.0);
+        let result = kombinierte_matrix.multipliziere_punkt(&punkt);
+
+        // Then: Das Ergebnis muss die kombinierte Transformation widerspiegeln
+        let expected = Vector3D::neu(7.0, 2.0, 2.0);
+        assert_eq!(result, expected);
+    }
 }
