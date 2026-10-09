@@ -74,6 +74,35 @@ impl Vector3D {
 
         Vector3D { x, y, z }
     }
+
+    /// Mathematisch: Vektornormalisierung (Erzeugung eines Einheitsvektors).
+    /// Skaliert den Vektor so, dass seine geometrische Länge exakt `1.0` beträgt,
+    /// während seine ursprüngliche Richtung im Raum unverändert bleibt.
+    ///
+    /// # Verwendung im Renderer
+    /// Essentiell für Beleuchtungsberechnungen (z.B. Lambert-Shading), da das
+    /// Skalarprodukt zweier normalisierter Vektoren direkt den Kosinus des Winkels
+    /// zwischen ihnen liefert (Blickrichtung, Lichtrichtung, Oberflächennormalen).
+    ///
+    /// # Mathematische Formel
+    /// v_normalisiert = v / ||v|| = (x / laenge, y / laenge, z / laenge)
+    ///
+    /// # Panics / Edge Cases
+    /// Wenn der Vektor eine Länge von `0.0` hat (Nullvektor), führt die Division
+    /// durch Null dazu, dass die Komponenten des Ergebnisvektors `f32::NAN` werden.
+    fn normalisiere(&self) -> Vector3D {
+        let laenge = self.laenge();
+
+        if laenge == 0.0 {
+            Vector3D::neu(0.0, 0.0, 0.0)
+        } else {
+            Vector3D {
+                x: self.x / laenge,
+                y: self.y / laenge,
+                z: self.z / laenge,
+            }
+        }
+    }
 }
 
 struct Matrix4D {
@@ -278,5 +307,24 @@ mod tests {
         // Then: Erwarten wir die addierten Verschiebungen
         let expected = Vector3D::neu(3.0, 4.0, 0.0);
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_vector_normalisieren() {
+        // Given: Ein unnormierter Vektor
+        let v = Vector3D::neu(3.0, 0.0, 4.0); // Länge ist 5.0
+
+        // When: Wir den Vektor normalisieren (Richtung bleibt gleich, Länge wird 1.0)
+        let result = v.normalisiere();
+
+        // Then: Jede Komponente muss durch die Länge (5.0) geteilt worden sein
+        let expected = Vector3D::neu(0.6, 0.0, 0.8);
+
+        // Da f32-Präzision ungenau sein kann, nutzen wir eine kleine Toleranz (Epsilon)
+        let epsilon = 1e-6;
+        assert!((result.x - expected.x).abs() < epsilon);
+        assert!((result.y - expected.y).abs() < epsilon);
+        assert!((result.z - expected.z).abs() < epsilon);
+        assert!((result.laenge() - 1.0).abs() < epsilon);
     }
 }
