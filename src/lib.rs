@@ -148,6 +148,18 @@ impl Matrix4D {
         Matrix4D { m: [[0.0; 4]; 4] }
     }
 
+    fn translation(vector: &Vector3D) -> Self {
+        unimplemented!()
+    }
+
+    fn skalierung(skal_x: f32, skal_y: f32, skal_z: f32) -> Self {
+        unimplemented!()
+    }
+
+    fn rotation_z(rot_winkel: f32) -> Self {
+        unimplemented!()
+    }
+
     /// Mathematisch: Multiplikation der Matrix mit einem 3D-Punkt über homogene Koordinaten (w = 1.0).
     ///
     /// (Skalierung, Rotation und Verschiebung/Translation) auf einen dreidimensionalen Punkt an.
@@ -461,5 +473,55 @@ mod tests {
         // Then: Das Ergebnis muss die kombinierte Transformation widerspiegeln
         let expected = Vector3D::neu(7.0, 2.0, 2.0);
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_matrix_erstelle_translation() {
+        // Given: Ein Verschiebungsvektor
+        let verschiebung = Vector3D::neu(3.0, -2.5, 7.0);
+
+        // When: Wir eine dedizierte Translationsmatrix erstellen
+        let m = Matrix4D::translation(&verschiebung);
+
+        // Then: Muss ein Punkt bei (0,0,0) exakt auf den Verschiebungsvektor wandern
+        let start_punkt = Vector3D::neu(0.0, 0.0, 0.0);
+        let result = m.multipliziere_punkt(&start_punkt);
+
+        assert_eq!(result, verschiebung);
+    }
+
+    #[test]
+    fn test_matrix_erstelle_skalierung() {
+        // Given: Ein Skalierungswert für alle 3 Achsen
+        let m = Matrix4D::skalierung(2.0, 0.5, 3.0);
+        let punkt = Vector3D::neu(10.0, 10.0, 10.0);
+
+        // When: Wir den Punkt skalieren
+        let result = m.multipliziere_punkt(&punkt);
+
+        // Then: Erwarten wir die komponentenweise Multiplikation
+        let expected = Vector3D::neu(20.0, 5.0, 30.0);
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_matrix_rotation_z_achse() {
+        // Given: Eine Rotation um 90 Grad (PI / 2 Bogenmaß) um die Z-Achse
+        use std::f32::consts::PI;
+        let winkel = PI / 2.0;
+        let m = Matrix4D::rotation_z(winkel);
+
+        // Ein Punkt auf der X-Achse (1, 0, 0)
+        let punkt = Vector3D::neu(1.0, 0.0, 0.0);
+
+        // When: Wir den Punkt rotieren
+        let result = m.multipliziere_punkt(&punkt);
+
+        // Then: Dreht sich der Punkt im Gegenuhrzeigersinn auf die Y-Achse (0, 1, 0)
+        // Hinweis: Da f32 Ungenauigkeiten besitzt, prüfen wir mit einer kleinen Toleranz (Epsilon)
+        let epsilon = 0.00001;
+        assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
+        assert!((result.y - 1.0).abs() < epsilon, "Y war: {}", result.y);
+        assert!((result.z - 0.0).abs() < epsilon, "Z war: {}", result.z);
     }
 }
