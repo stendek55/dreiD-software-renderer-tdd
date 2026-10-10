@@ -148,16 +148,63 @@ impl Matrix4D {
         Matrix4D { m: [[0.0; 4]; 4] }
     }
 
+    /// Mathematisch: Erstellung einer Translationsmatrix (Verschiebungsmatrix).
+    ///
+    /// Platziert die Verschiebungswerte (x, y, z) in die vierte Spalte der Matrix.
+    /// Bei der Multiplikation mit einem Punkt (w = 1.0) werden diese Werte linear aufaddiert.
+    ///
+    /// # Verwendung im Renderer
+    /// Verschiebt 3D-Objekte oder die Kamera frei durch den virtuellen Raum.
     fn translation(vector: &Vector3D) -> Self {
-        unimplemented!()
+        let mut mat = Matrix4D::identitaet();
+
+        mat.m[0][3] = vector.x;
+        mat.m[1][3] = vector.y;
+        mat.m[2][3] = vector.z;
+
+        mat
     }
 
+    /// Mathematisch: Erstellung einer Skalierungsmatrix.
+    ///
+    /// Multipliziert die Hauptdiagonale der Matrix mit den jeweiligen Skalierungsfaktoren.
+    /// Die vierte Komponente (w) bleibt unverändert auf 1.0.
+    ///
+    /// # Verwendung im Renderer
+    /// Erlaubt es, 3D-Modelle in den drei Raumachsen unabhängig voneinander zu strecken (Faktor > 1.0)
+    /// oder zu stauchen (Faktor < 1.0).
     fn skalierung(skal_x: f32, skal_y: f32, skal_z: f32) -> Self {
-        unimplemented!()
+        let mut mat = Matrix4D::identitaet();
+
+        mat.m[0][0] = skal_x;
+        mat.m[1][1] = skal_y;
+        mat.m[2][2] = skal_z;
+
+        mat
     }
 
+    /// Mathematisch: Erstellung einer Rotationsmatrix um die Z-Achse.
+    ///
+    /// Dreht alle Punkte in der X-Y-Ebene um den Ursprung. Die Z-Koordinate bleibt dabei unverändert.
+    /// Die Berechnung nutzt die trigonometrischen Funktionen `cos` und `sin` des Winkels.
+    ///
+    /// # Verwendung im Renderer
+    /// Dreht ein Objekt (oder die Kamera) im Uhrzeigersinn bzw. Gegenuhrzeigersinn,
+    /// wenn man direkt von vorne auf den Bildschirm blickt (wichtig für Roll-Bewegungen).
+    ///
+    /// # Winkelmaß
+    /// Erwartet den Winkel im **Bogenmaß** (Radians). Ein Vollkreis entspricht 2 * PI.
     fn rotation_z(rot_winkel: f32) -> Self {
-        unimplemented!()
+        let mut mat = Matrix4D::identitaet();
+        let cos = rot_winkel.cos();
+        let sin = rot_winkel.sin();
+
+        mat.m[0][0] = cos;
+        mat.m[0][1] = -sin;
+        mat.m[1][0] = sin;
+        mat.m[1][1] = cos;
+
+        mat
     }
 
     /// Mathematisch: Multiplikation der Matrix mit einem 3D-Punkt über homogene Koordinaten (w = 1.0).
