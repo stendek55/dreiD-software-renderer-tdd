@@ -206,6 +206,12 @@ impl Matrix4D {
 
         mat
     }
+    fn rotation_y(rot_winkel: f32) -> Self {
+        unimplemented!()
+    }
+    fn rotation_x(rot_winkel: f32) -> Self {
+        unimplemented!()
+    }
 
     /// Mathematisch: Multiplikation der Matrix mit einem 3D-Punkt über homogene Koordinaten (w = 1.0).
     ///
@@ -570,5 +576,47 @@ mod tests {
         assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
         assert!((result.y - 1.0).abs() < epsilon, "Y war: {}", result.y);
         assert!((result.z - 0.0).abs() < epsilon, "Z war: {}", result.z);
+    }
+
+    #[test]
+    fn test_matrix_rotation_y_achse() {
+        // Given: Eine Rotation um 90 Grad (PI / 2 Bogenmaß) um die Y-Achse
+        use std::f32::consts::PI;
+        let winkel = PI / 2.0;
+        let m = Matrix4D::rotation_y(winkel);
+
+        // Ein Punkt auf der X-Achse (1, 0, 0)
+        let punkt = Vector3D::neu(1.0, 0.0, 0.0);
+
+        // When: Wir den Punkt rotieren
+        let result = m.multipliziere_punkt(&punkt);
+
+        // Then: Dreht sich der Punkt im Gegenuhrzeigersinn auf die Z-Achse (0, 0, -1)
+        // Hinweis: Da f32 Ungenauigkeiten besitzt, prüfen wir mit einer kleinen Toleranz (Epsilon)
+        let epsilon = 0.00001;
+        assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
+        assert!((result.y - 0.0).abs() < epsilon, "Y war: {}", result.y);
+        assert!((result.z + 1.0).abs() < epsilon, "Z war: {}", result.z);
+    }
+
+    #[test]
+    fn test_matrix_rotation_x_achse() {
+        // Given: Eine Rotation um 90 Grad (PI / 2 Bogenmaß) um die X-Achse
+        use std::f32::consts::PI;
+        let winkel = PI / 2.0;
+        let m = Matrix4D::rotation_x(winkel);
+
+        // Ein Punkt auf der Y-Achse (0, 1, 0)
+        let punkt = Vector3D::neu(0.0, 1.0, 0.0);
+
+        // When: Wir den Punkt rotieren
+        let result = m.multipliziere_punkt(&punkt);
+
+        // Then: Dreht sich der Punkt im Gegenuhrzeigersinn auf die Z-Achse (0, 0, 1)
+        // Hinweis: Da f32 Ungenauigkeiten besitzt, prüfen wir mit einer kleinen Toleranz (Epsilon)
+        let epsilon = 0.00001;
+        assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
+        assert!((result.y - 0.0).abs() < epsilon, "Y war: {}", result.y);
+        assert!((result.z - 1.0).abs() < epsilon, "Z war: {}", result.z);
     }
 }
