@@ -130,6 +130,7 @@ impl Vector3D {
 // * **Zeigefinger:** Y-Achse (zeigt nach oben)
 // * **Mittelfinger:** Z-Achse (zeigt aus dem Bildschirm heraus auf den Betrachter)
 
+#[derive(Debug, PartialEq)]
 struct Vector4D {
     x: f32,
     y: f32,
@@ -648,10 +649,11 @@ mod tests {
         assert_eq!(result, expected);
     }
 
+    use std::f32::consts::PI;
+    const EPSILON: f32 = 1e-5; // = 0.00001 -> differenz zum ergebnis noch ok
     #[test]
     fn test_matrix_rotation_z_achse() {
         // Given: Eine Rotation um 90 Grad (PI / 2 Bogenmaß) um die Z-Achse
-        use std::f32::consts::PI;
         let winkel = PI / 2.0;
         let m = Matrix4D::rotation_z(winkel);
 
@@ -663,16 +665,14 @@ mod tests {
 
         // Then: Dreht sich der Punkt im Gegenuhrzeigersinn auf die Y-Achse (0, 1, 0)
         // Hinweis: Da f32 Ungenauigkeiten besitzt, prüfen wir mit einer kleinen Toleranz (Epsilon)
-        let epsilon = 0.00001;
-        assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
-        assert!((result.y - 1.0).abs() < epsilon, "Y war: {}", result.y);
-        assert!((result.z - 0.0).abs() < epsilon, "Z war: {}", result.z);
+        assert!((result.x - 0.0).abs() < EPSILON, "X war: {}", result.x);
+        assert!((result.y - 1.0).abs() < EPSILON, "Y war: {}", result.y);
+        assert!((result.z - 0.0).abs() < EPSILON, "Z war: {}", result.z);
     }
 
     #[test]
     fn test_matrix_rotation_y_achse() {
         // Given: Eine Rotation um 90 Grad (PI / 2 Bogenmaß) um die Y-Achse
-        use std::f32::consts::PI;
         let winkel = PI / 2.0;
         let m = Matrix4D::rotation_y(winkel);
 
@@ -684,16 +684,14 @@ mod tests {
 
         // Then: Dreht sich der Punkt im Gegenuhrzeigersinn auf die Z-Achse (0, 0, -1)
         // Hinweis: Da f32 Ungenauigkeiten besitzt, prüfen wir mit einer kleinen Toleranz (Epsilon)
-        let epsilon = 0.00001;
-        assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
-        assert!((result.y - 0.0).abs() < epsilon, "Y war: {}", result.y);
-        assert!((result.z + 1.0).abs() < epsilon, "Z war: {}", result.z);
+        assert!((result.x - 0.0).abs() < EPSILON, "X war: {}", result.x);
+        assert!((result.y - 0.0).abs() < EPSILON, "Y war: {}", result.y);
+        assert!((result.z + 1.0).abs() < EPSILON, "Z war: {}", result.z);
     }
 
     #[test]
     fn test_matrix_rotation_x_achse() {
         // Given: Eine Rotation um 90 Grad (PI / 2 Bogenmaß) um die X-Achse
-        use std::f32::consts::PI;
         let winkel = PI / 2.0;
         let m = Matrix4D::rotation_x(winkel);
 
@@ -705,10 +703,9 @@ mod tests {
 
         // Then: Dreht sich der Punkt im Gegenuhrzeigersinn auf die Z-Achse (0, 0, 1)
         // Hinweis: Da f32 Ungenauigkeiten besitzt, prüfen wir mit einer kleinen Toleranz (Epsilon)
-        let epsilon = 0.00001;
-        assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
-        assert!((result.y - 0.0).abs() < epsilon, "Y war: {}", result.y);
-        assert!((result.z - 1.0).abs() < epsilon, "Z war: {}", result.z);
+        assert!((result.x - 0.0).abs() < EPSILON, "X war: {}", result.x);
+        assert!((result.y - 0.0).abs() < EPSILON, "Y war: {}", result.y);
+        assert!((result.z - 1.0).abs() < EPSILON, "Z war: {}", result.z);
     }
 
     #[test]
@@ -745,32 +742,6 @@ mod tests {
             w: 144.0,
         };
 
-        // Nutze eine kleine Toleranz für Fließkommazahlen
-        let epsilon = 1e-5;
-        dbg!(epsilon);
-        assert!(
-            (result.x - expected.x).abs() < epsilon,
-            "X fehlerhaft! War: {}, Erwartet: {}",
-            result.x,
-            expected.x
-        );
-        assert!(
-            (result.y - expected.y).abs() < epsilon,
-            "Y fehlerhaft! War: {}, Erwartet: {}",
-            result.y,
-            expected.y
-        );
-        assert!(
-            (result.z - expected.z).abs() < epsilon,
-            "Z fehlerhaft! War: {}, Erwartet: {}",
-            result.z,
-            expected.z
-        );
-        assert!(
-            (result.w - expected.w).abs() < epsilon,
-            "W fehlerhaft! War: {}, Erwartet: {}",
-            result.w,
-            expected.w
-        );
+        assert_eq!(result, expected);
     }
 }
