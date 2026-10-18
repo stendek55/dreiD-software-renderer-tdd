@@ -365,6 +365,10 @@ impl Matrix4D {
 
         Vector4D { x, y, z, w }
     }
+
+    fn perspektive(fov_rad: f32, aspect: f32, near: f32, far: f32) -> Self {
+        unimplemented!()
+    }
 }
 
 //#########################################################################
@@ -743,5 +747,112 @@ mod tests {
         };
 
         assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_projektionsmatrix_nullpunkt() {
+        // Given: Eine Kamera mit 90° FOV, quadratischem Bildschirm (1:1)
+        let fov = PI / 2.0;
+        let aspect = 1.0;
+        let near = 0.1;
+        let far = 100.0;
+        let proj_matrix = Matrix4D::perspektive(fov, aspect, near, far);
+
+        // Ein Punkt liegt exakt auf der Blickachse (Z-Achse)
+        // Hinweis: Da deine Kamera standardmäßig in den Raum blickt, testen wir mit Z = -5.0
+        let punkt_auf_achse = Vector3D::neu(0.0, 0.0, -5.0);
+
+        // When: Der Punkt projiziert wird
+        let res = proj_matrix.multipliziere_vektor_homogen(&punkt_auf_achse);
+
+        // Then: Müssen X und Y im NDC-Raum exakt zentriert bei 0.0 bleiben
+        assert!(
+            (res.x - 0.0).abs() < EPSILON,
+            "X-Projektion abgewichen: {}",
+            res.x
+        );
+        assert!(
+            (res.y - 0.0).abs() < EPSILON,
+            "Y-Projektion abgewichen: {}",
+            res.y
+        );
+    }
+
+    #[test]
+    fn test_projektionsmatrix_seitenverhaeltnis_skalierung() {
+        // Given: Ein typischer Breitbild-Monitor (16:9)
+        let fov = PI / 3.0; // 60 Grad
+        let aspect = 16.0 / 9.0;
+        let proj_matrix = Matrix4D::perspektive(fov, aspect, 0.1, 100.0);
+
+        // Ein perfekt symmetrischer Punkt im Raum
+        let punkt = Vector3D::neu(2.0, 2.0, -5.0);
+
+        // When: Wir den Punkt projizieren
+        let res = proj_matrix.multipliziere_vektor_homogen(&punkt);
+
+        // Then: Da der Bildschirm breiter als hoch ist, müssen die Koordinaten horizontal (X)
+        // stärker gestaucht werden als vertikal (Y), um ein "Breitgezerrtes" Bild zu verhindern.
+        assert!(
+            res.x.abs() < res.y.abs(),
+            "X-Wert ({}) wurde nicht stärker gestaucht als Y-Wert ({})",
+            res.x,
+            res.y
+        );
+    }
+
+    #[test]
+    fn test_projektionsmatrix_fov_einfluss() {
+        // Given: Ein Punkt im Raum und zwei unterschiedliche Sichtfelder
+        let punkt = Vector3D::neu(1.0, 1.0, -5.0);
+
+        let fov_eng = PI / 4.0; // 45 Grad (Zoom)
+        let fov_weit = PI / 2.0; // 90 Grad (Weitwinkel)
+
+        let mat_eng = Matrix4D::perspektive(fov_eng, 1.0, 0.1, 100.0);
+        let mat_weit = Matrix4D::perspektive(fov_weit, 1.0, 0.1, 100.0);
+
+        // When: Beide Matrizen denselben Punkt verarbeiten
+        let res_eng = mat_eng.multipliziere_vektor_homogen(&punkt);
+        let res_weit = mat_weit.multipliziere_vektor_homogen(&punkt);
+
+        // Then: Im Weitwinkel sieht man mehr von der Welt, Objekte rücken
+        // optisch weiter in die Mitte (Koordinaten im NDC-Raum müssen kleiner sein).
+        assert!(
+            res_weit.x.abs() < res_eng.x.abs(),
+            "Weitwinkel X ({}) ist nicht kleiner als Zoom X ({})",
+            res_weit.x,
+            res_eng.x
+        );
+        assert!(
+            res_weit.y.abs() < res_eng.y.abs(),
+            "Weitwinkel Y ({}) ist nicht kleiner als Zoom Y ({})",
+            res_weit.y,
+            res_eng.y
+        );
+    }
+
+    #[test]
+    fn test_projektionsmatrix_w_komponente() {
+        // Given: Eine perspektivische Matrix und ein Punkt mit Tiefe (Z = -10.0)
+        let z_tiefe = -10.0;
+        let punkt = Vector3D::neu(1.0, 1.0, z_tiefe);
+        let proj_matrix = Matrix4D::perspektive(PI / 2.0, 1.0, 0.1, 100.0);
+
+        // When: Der Punkt transformiert wird
+        let res = proj_matrix.multipliziere_vektor_homogen(&punkt);
+
+        // Then: Die w-Komponente darf NICHT 1.0 bleiben. Sie muss den invertierten
+        // originalen Z-Wert beinhalten, damit die spätere Division die Perspektive erzeugt.
+        assert_ne!(
+            res.w, 1.0,
+            "w-Komponente wurde nicht modifiziert. Perspektive wird fehlschlagen."
+        );
+        assert!(
+            (res.w - z_tiefe.abs()).abs() < EPSILON,
+            "w-Komponente hält nicht die Tiefe. Erwartet: {}, War: {}",
+            z_tiefe.abs(),
+            res.w
+        );
     }
 }
