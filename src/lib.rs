@@ -124,10 +124,18 @@ impl Vector3D {
         (self.x * anderer.x) + (self.y * anderer.y) + (self.z * anderer.z)
     }
 }
-/// # Das rechtshändige Koordinatensystem (Ausgangslage)
-/// * **Daumen:** X-Achse (zeigt nach rechts)
-/// * **Zeigefinger:** Y-Achse (zeigt nach oben)
-/// * **Mittelfinger:** Z-Achse (zeigt aus dem Bildschirm heraus auf den Betrachter)
+//#########-----rechteHandRegel-----###################
+// # Das rechtshändige Koordinatensystem (Ausgangslage)
+// * **Daumen:** X-Achse (zeigt nach rechts)
+// * **Zeigefinger:** Y-Achse (zeigt nach oben)
+// * **Mittelfinger:** Z-Achse (zeigt aus dem Bildschirm heraus auf den Betrachter)
+
+struct Vector4D {
+    x: f32,
+    y: f32,
+    z: f32,
+    w: f32,
+}
 
 #[derive(Debug, PartialEq)]
 struct Matrix4D {
@@ -318,6 +326,43 @@ impl Matrix4D {
         }
 
         mtrx
+    }
+
+    /// Mathematisch: Multiplikation der Matrix mit einem 3D-Punkt in homogenen Koordinaten (w = 1.0).
+    ///
+    /// Berechnet die vollständige Transformation inklusive der vierten Zeile der Matrix.
+    /// Im Gegensatz zur Standard-Punktmultiplikation wird die homogene Koordinate `w` nicht verworfen,
+    /// sondern als eigenständiger Wert im Ergebnis-Vektor berechnet.
+    ///
+    /// # Verwendung im Renderer
+    /// Dies ist der essenzielle Schritt für die **perspektivische Projektion**. Die Matrix codiert
+    /// hierbei die Tiefeninformation des Punktes in die `w`-Komponente des resultierenden `Vector4D`.
+    /// Dieser Wert wird im nächsten Schritt der Pipeline für die perspektivische Division benötigt.
+    ///
+    /// # Mathematischer Hintergrund (Homogene Koordinaten)
+    /// Der eingehende `Vector3D` wird virtuell um die Komponente `w = 1.0` erweitert. Das Ergebnis
+    /// bildet die exakte Zeile-mal-Spalte-Multiplikation der 4x4-Matrix ab:
+    /// * `x`, `y`, `z` fangen Translation, Rotation und Skalierung ein.
+    /// * `w` berechnet sich aus der vierten Zeile und speichert bei Projektionsmatrizen die relative Z-Tiefe.
+    fn multipliziere_vektor_homogen(&self, punkt: &Vector3D) -> Vector4D {
+        let x = (self.m[0][0] * punkt.x)
+            + (self.m[0][1] * punkt.y)
+            + (self.m[0][2] * punkt.z)
+            + self.m[0][3];
+        let y = (self.m[1][0] * punkt.x)
+            + (self.m[1][1] * punkt.y)
+            + (self.m[1][2] * punkt.z)
+            + self.m[1][3];
+        let z = (self.m[2][0] * punkt.x)
+            + (self.m[2][1] * punkt.y)
+            + (self.m[2][2] * punkt.z)
+            + self.m[2][3];
+        let w = (self.m[3][0] * punkt.x)
+            + (self.m[3][1] * punkt.y)
+            + (self.m[3][2] * punkt.z)
+            + self.m[3][3];
+
+        Vector4D { x, y, z, w }
     }
 }
 
@@ -664,5 +709,68 @@ mod tests {
         assert!((result.x - 0.0).abs() < epsilon, "X war: {}", result.x);
         assert!((result.y - 0.0).abs() < epsilon, "Y war: {}", result.y);
         assert!((result.z - 1.0).abs() < epsilon, "Z war: {}", result.z);
+    }
+
+    #[test]
+    fn test_matrix_multiplikation_vektor_homogen_vollstaendig() {
+        // Given: Eine Matrix mit eindeutig identifizierbaren Werten für jede Position
+        // Zeile 0: [ 1,  2,  3,  4]
+        // Zeile 1: [ 5,  6,  7,  8]
+        // Zeile 2: [ 9, 10, 11, 12]
+        // Zeile 3: [13, 14, 15, 16]
+        let mut test_matrix = Matrix4D::nuller();
+        test_matrix.m = [
+            [1.0, 2.0, 3.0, 4.0],
+            [5.0, 6.0, 7.0, 8.0],
+            [9.0, 10.0, 11.0, 12.0],
+            [13.0, 14.0, 15.0, 16.0],
+        ];
+
+        // Ein Vektor mit eindeutigen Koordinaten (w wird implizit als 1.0 angenommen)
+        let punkt = Vector3D::neu(2.0, 3.0, 4.0);
+
+        // When: Wir den Vektor homogen multiplizieren
+        let result = test_matrix.multipliziere_vektor_homogen(&punkt);
+
+        // Then: Erwarten wir die mathematisch exakten Skalarprodukte pro Zeile:
+        // x = (1*2)  + (2*3)  + (3*4)  + (4*1)  = 2  + 6  + 12 + 4  = 24
+        // y = (5*2)  + (6*3)  + (7*4)  + (8*1)  = 10 + 18 + 28 + 8  = 64
+        // z = (9*2)  + (10*3) + (11*4) + (12*1) = 18 + 30 + 44 + 12 = 104
+        // w = (13*2) + (14*3) + (15*4) + (16*1) = 26 + 42 + 60 + 16 = 144
+
+        let expected = Vector4D {
+            x: 24.0,
+            y: 64.0,
+            z: 104.0,
+            w: 144.0,
+        };
+
+        // Nutze eine kleine Toleranz für Fließkommazahlen
+        let epsilon = 1e-5;
+        dbg!(epsilon);
+        assert!(
+            (result.x - expected.x).abs() < epsilon,
+            "X fehlerhaft! War: {}, Erwartet: {}",
+            result.x,
+            expected.x
+        );
+        assert!(
+            (result.y - expected.y).abs() < epsilon,
+            "Y fehlerhaft! War: {}, Erwartet: {}",
+            result.y,
+            expected.y
+        );
+        assert!(
+            (result.z - expected.z).abs() < epsilon,
+            "Z fehlerhaft! War: {}, Erwartet: {}",
+            result.z,
+            expected.z
+        );
+        assert!(
+            (result.w - expected.w).abs() < epsilon,
+            "W fehlerhaft! War: {}, Erwartet: {}",
+            result.w,
+            expected.w
+        );
     }
 }
