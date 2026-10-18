@@ -366,8 +366,38 @@ impl Matrix4D {
         Vector4D { x, y, z, w }
     }
 
+    /// Mathematisch: Erstellung einer standardisierten perspektivischen Projektionsmatrix.
+    ///
+    /// # Parameter
+    /// * `fov_rad`: Das vertikale Sichtfeld (Field of View) im Bogenmaß (Radians).
+    /// * `aspect`: Das Seitenverhältnis des Bildschirms (Breite / Höhe).
+    /// * `near`: Der Abstand vom Auge zur nahen Clipping-Ebene (Sichtgrenze vorne).
+    /// * `far`: Der Abstand vom Auge zur fernen Clipping-Ebene (Sichtgrenze hinten).
+    ///
+    /// # Verwendung im Renderer
+    /// Bildet die dreidimensionale Pyramide des Kamerasichtfelds (Frustum o Sichtstumpf) auf einen
+    /// standardisierten, würfelförmigen Raum ab (Normalized Device Coordinates / NDC, von -1.0 bis 1.0).
+    /// Sie verzerrt den Raum so, dass weiter entfernte Objekte nach der Division durch `w` kleiner werden.
     fn perspektive(fov_rad: f32, aspect: f32, near: f32, far: f32) -> Self {
-        unimplemented!()
+        let mut mat = Matrix4D::nuller();
+
+        // Berechne den Skalierungsfaktor basierend auf dem Sichtfeld
+        let tan_half_fov = (fov_rad / 2.0).tan();
+
+        // Erste Zeile: Skalierung für X (inklusive Seitenverhältnis)
+        mat.m[0][0] = 1.0 / (aspect * tan_half_fov);
+
+        // Zweite Zeile: Skalierung für Y
+        mat.m[1][1] = 1.0 / tan_half_fov;
+
+        // Dritte Zeile: Transformation und Mapping der Z-Tiefe
+        mat.m[2][2] = -(far + near) / (far - near);
+        mat.m[2][3] = -(2.0 * far * near) / (far - near);
+
+        // Vierte Zeile: Speicher die Z-Tiefe im homogenen W-Wert ab (w = -z)
+        mat.m[3][2] = -1.0;
+
+        mat
     }
 }
 
