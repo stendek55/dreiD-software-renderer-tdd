@@ -138,6 +138,41 @@ struct Vector4D {
     w: f32,
 }
 
+impl Vector4D {
+    /// Mathematisch: Perspektivische Division (De-Homogenisierung des Vektors).
+    ///
+    /// Teilt die räumlichen Koordinaten (x, y, z) komponentenweise durch die homogene
+    /// vierte Komponente (w). Dadurch wird der Punkt aus dem vierdimensionalen Clip-Space
+    /// in den standardisierten, dreidimensionalen NDC-Raum (Normalized Device Coordinates) überführt.
+    ///
+    /// # Verwendung im Renderer
+    /// Dies ist der entscheidende Schritt zur Erzeugung des 3D-Effekts: Da die `w`-Komponente
+    /// zuvor durch die Projektionsmatrix die Tiefeninformation des Punktes (Z-Wert) gespeichert hat,
+    /// bewirkt die Division, dass weiter entfernte Objekte automatisch kleiner dargestellt werden.
+    /// Nach diesem Schritt liegen alle sichtbaren Punkte in einem Wertebereich von `-1.0` bis `1.0`.
+    ///
+    /// # Mathematische Formel
+    /// v_ndc = (x / w, y / w, z / w)
+    ///
+    /// # Panics / Edge Cases
+    /// Wenn die homogene Komponente `w` exakt `0.0` beträgt (Punkt befindet sich im Ursprung
+    /// der Kameraebene), wird eine Division durch Null verhindert und stattdessen ein
+    /// sicherer Nullvektor `Vector3D::neu(0.0, 0.0, 0.0)` zurückgegeben.
+    fn zu_ndc_space(&self) -> Vector3D {
+        let tiefenwert_w = self.w;
+
+        if tiefenwert_w == 0.0 {
+            Vector3D::neu(0.0, 0.0, 0.0)
+        } else {
+            Vector3D {
+                x: self.x / tiefenwert_w,
+                y: self.y / tiefenwert_w,
+                z: self.z / tiefenwert_w,
+            }
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 struct Matrix4D {
     m: [[f32; 4]; 4],
@@ -884,5 +919,26 @@ mod tests {
             z_tiefe.abs(),
             res.w
         );
+    }
+
+    #[test]
+    fn test_vector4d_zu_ndc_vektor3d() {
+        // Given: Ein Vector4D aus der Projektionsmatrix (w hält die Tiefe)
+        let homogener_punkt = Vector4D {
+            x: 2.5,
+            y: -1.25,
+            z: 3.0,
+            w: 5.0,
+        };
+
+        // When: den punkt in ndc-raum wandeln
+        let ndc_punkt = homogener_punkt.zu_ndc_space();
+
+        // Then: Erwarten wir einen Vector3D, bei dem alle Komponenten durch w geteilt wurden
+        // 2.5 / 5.0 = 0.5
+        // -1.25 / 5.0 = -0.25
+        // 3.0 / 5.0 = 0.6
+        let expected = Vector3D::neu(0.5, -0.25, 0.6);
+        assert_eq!(ndc_punkt, expected);
     }
 }
