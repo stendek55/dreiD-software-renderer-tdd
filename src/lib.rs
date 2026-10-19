@@ -473,6 +473,82 @@ impl Viewport {
     }
 }
 
+/// Mathematisch: Rasterung einer idealen mathematischen Linie auf einem diskreten Pixelraster.
+///
+/// Implementiert den verallgemeinerten Bresenham-Linienalgorithmus, der Linien in alle
+/// 8 Oktanten (flach, steil, steigend, fallend, nach links oder nach rechts) fehlerfrei zeichnet.
+/// Der Algorithmus arbeitet vollständig ohne Fließkommazahlen (Floats) und Divisionen,
+/// was ihn extrem effizient macht.
+///
+/// # Funktionsweise & mathematischer Hintergrund
+/// Anstatt für jedes Pixel die Geradengleichung `y = m * x + b` mit langsamen Fließkommawerten
+/// zu berechnen und zu runden, nutzt der Algorithmus eine reine Ganzzahl-Fehlervariable (`fehler_0`).
+/// Diese misst den kumulierten Abstand zur idealen mathematischen Linie.
+/// Durch die interne Multiplikation der Gleichung mit `2 * dx` bzw. `2 * dy` werden alle Brüche
+/// eliminiert. Die Multiplikation `2 * fehler_0` wird vom Prozessor hardwareseitig über eine
+/// extrem schnelle Bit-Verschiebung (Bit-Shift) gelöst.
+///
+/// # Parameter
+/// * `x_start`: Die horizontale Startkoordinate im Screen-Space.
+/// * `y_start`: Die vertikale Startkoordinate im Screen-Space.
+/// * `x_end`: Die horizontale Endkoordinate im Screen-Space.
+/// * `y_end`: Die vertikale Endkoordinate im Screen-Space.
+///
+/// # Rückgabewert
+/// Gibt einen Vektor (`Vec<(i32, i32)>`) zurück, der sequenziell alle berechneten Pixelkoordinaten
+/// vom Startpunkt bis zum Endpunkt (jeweils inklusive) enthält.
+///
+/// # Edge Cases (Abgedeckte Spezialfälle)
+/// * **Horizontale Linien:** `dy == 0`. Der Algorithmus läuft stabil ohne Division-by-Zero-Risiko.
+/// * **Vertikale Linien:** `dx == 0`. Ebenfalls stabil, es wird nur auf der Y-Achse geschritten.
+/// * **Rückwärts-Linien:** Wenn der Endpunkt links vom Startpunkt liegt (`x_start > x_end`),
+///   wird die Schrittrichtung automatisch invertiert (`sx = -1`).
+/// * **Identische Punkte:** Wenn Start- und Endpunkt übereinstimmen, wird ein einzelnes Pixel zurückgegeben.
+fn bresenham_linie(x_start: i32, y_start: i32, x_end: i32, y_end: i32) -> Vec<(i32, i32)> {
+    let mut punkte = Vec::new();
+
+    //abstände berechnen
+    let dx = (x_start - x_end).abs();
+    let dy = (y_start - y_end).abs();
+
+    //schrittrichtung bestimmen (vorzeichen)
+    let sx = if x_start < x_end { 1 } else { -1 };
+    let sy = if y_start < y_end { 1 } else { -1 };
+
+    //startfehler
+    let mut fehler_0 = dx - dy;
+
+    //startpunkte
+    let mut x = x_start;
+    let mut y = y_start;
+
+    loop {
+        //aktuelles pixel setzen
+        punkte.push((x, y));
+
+        //wenn ziel erreicht dann abbruch
+        if x == x_end && y == y_end {
+            break;
+        }
+
+        let fehler_1 = 2 * fehler_0;
+
+        //schritt in x-richtung
+        if fehler_1 > -dy {
+            fehler_0 -= dy;
+            x += sx;
+        }
+
+        //schritt in y-richtung
+        if fehler_1 < dx {
+            fehler_0 += dx;
+            y += sy;
+        }
+    }
+
+    punkte
+}
+
 //#########################################################################
 //###########################-----UNIT-TESTS-----##########################
 //#########################################################################
@@ -1001,5 +1077,31 @@ mod tests {
         // (1.0 - (-0.25)) * 0.5 * 600 = 1.25 * 300 = 375
         assert_eq!(pixel_x, 600);
         assert_eq!(pixel_y, 375);
+    }
+
+    #[test]
+    fn test_bresenham_horizontale_linie_links_nach_rechts() {
+        // Zeichne Linie von (10, 20) nach (15, 20)
+        let punkte = bresenham_linie(10, 20, 15, 20);
+        let erwartet = vec![(10, 20), (11, 20), (12, 20), (13, 20), (14, 20), (15, 20)];
+        assert_eq!(punkte, erwartet);
+    }
+
+    #[test]
+    fn test_bresenham_vertikale_linie_unten_nach_oben() {
+        // Zeichne Linie von (5, 5) nach (5, 8)
+        let punkte = bresenham_linie(5, 5, 5, 8);
+        let erwartet = vec![(5, 5), (5, 6), (5, 7), (5, 8)];
+        assert_eq!(punkte, erwartet);
+    }
+
+    #[test]
+    fn test_bresenham_diagonale_linie_steil() {
+        // Teste eine steile Diagonale (Anstieg > 1), um zu prüfen, ob die Achsen-Spiegelung funktioniert
+        let punkte = bresenham_linie(0, 0, 2, 5);
+        // Der Algorithmus muss für jedes Y genau ein Pixel setzen
+        assert_eq!(punkte.len(), 6); // Start bis Ende = 6 Pixel
+        assert_eq!(punkte[0], (0, 0));
+        assert_eq!(punkte[5], (2, 5));
     }
 }
