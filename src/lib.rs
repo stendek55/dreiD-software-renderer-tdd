@@ -436,6 +436,43 @@ impl Matrix4D {
     }
 }
 
+struct Viewport {
+    breite: u32,
+    hoehe: u32,
+}
+
+impl Viewport {
+    fn neu(breite: u32, hoehe: u32) -> Self {
+        Viewport { breite, hoehe }
+    }
+
+    /// Mathematisch: Viewport-Transformation (Skalierung und Translation in den Screen-Space).
+    ///
+    /// Rechnet die normalisierten dreidimensionalen Raumkoordinaten (NDC, von -1.0 bis 1.0)
+    /// in zweidimensionale, ganzzahlige Pixel-Koordinaten des Fensters um.
+    ///
+    /// # Verwendung im Renderer
+    /// Diese Methode schließt die 3D-Transformationskette ab. Sie mappt das mathematische
+    /// Sichtfenster auf die realen Pixelabmessungen deines `minifb`-Fensters. Da der Nullpunkt
+    /// auf Bildschirmen oben links liegt und die Y-Achse nach unten verläuft, wird die
+    /// vertikale Y-Koordinate bei der Berechnung invertiert.
+    ///
+    /// # Mathematische Formel
+    /// pixel_x = (x_ndc + 1.0) * 0.5 * bildschirm_breite
+    /// pixel_y = (1.0 - y_ndc) * 0.5 * bildschirm_hoehe
+    ///
+    /// # Edge Cases
+    /// Die Ergebnisse werden mittels `as i32` gecastet. Punkte außerhalb des sichtbaren
+    /// Bereichs (NDC < -1.0 oder > 1.0) erzeugen planmäßig negative Pixelkoordinaten oder
+    /// Werte größer als die Fensterauflösung, welche im späteren Line-Clipper abgefangen werden.
+    fn transformiere(&self, ndc_pkt: &Vector3D) -> (i32, i32) {
+        let x_pxl = ((ndc_pkt.x + 1.0) * 0.5 * self.breite as f32) as i32;
+        let y_pxl = ((1.0 - ndc_pkt.y) * 0.5 * self.hoehe as f32) as i32;
+
+        (x_pxl, y_pxl)
+    }
+}
+
 //#########################################################################
 //###########################-----UNIT-TESTS-----##########################
 //#########################################################################
@@ -940,5 +977,29 @@ mod tests {
         // 3.0 / 5.0 = 0.6
         let expected = Vector3D::neu(0.5, -0.25, 0.6);
         assert_eq!(ndc_punkt, expected);
+    }
+
+    #[test]
+    fn test_viewport_transformation_auf_pixel_koordinaten() {
+        // Given: Ein Viewport mit einer typischen Auflösung (z. B. 800x600 Pixel)
+        let breite = 800;
+        let hoehe = 600;
+        let viewport = Viewport::neu(breite, hoehe);
+
+        // Und Given: Ein Punkt im NDC-Raum (-1.0 bis 1.0)
+        // x = 0.5 (im rechten Viertel des Bildschirms)
+        // y = -0.25 (im NDC-Raum leicht unter der Mitte)
+        let ndc_punkt = Vector3D::neu(0.5, -0.25, 0.0);
+
+        // When: Wir den Punkt auf Pixel-Koordinaten transformieren
+        let (pixel_x, pixel_y) = viewport.transformiere(&ndc_punkt);
+
+        // Then: Erwarten wir die korrekte Pixel-Position auf dem Bildschirm
+        // X-Berechnung: (0.5 + 1.0) * 0.5 * 800 = 1.5 * 400 = 600
+        // Y-Berechnung: In der Computergrafik zeigt Y auf dem Bildschirm nach UNTEN.
+        // Ein negativer NDC-Y-Wert wandert also in die untere Bildschirmhälfte:
+        // (1.0 - (-0.25)) * 0.5 * 600 = 1.25 * 300 = 375
+        assert_eq!(pixel_x, 600);
+        assert_eq!(pixel_y, 375);
     }
 }
