@@ -1,7 +1,50 @@
 #![allow(dead_code)]
 
+pub struct Mesh {
+    pub vertices: Vec<Vector3D>,
+    pub edges: Vec<(usize, usize)>,
+}
+
+impl Mesh {
+    pub fn neu(vertices: Vec<Vector3D>, edges: Vec<(usize, usize)>) -> Self {
+        Mesh { vertices, edges }
+    }
+
+    /// Erzeugt einen Standard-Würfel mit Kantenlänge 1.0 im Ursprung.
+    /// Perfekt als Standard-Geometrie für den Renderer.
+    pub fn wuerfel() -> Self {
+        let vertices = vec![
+            Vector3D::neu(-0.5, -0.5, -0.5), // 0
+            Vector3D::neu(0.5, -0.5, -0.5),  // 1
+            Vector3D::neu(0.5, 0.5, -0.5),   // 2
+            Vector3D::neu(-0.5, 0.5, -0.5),  // 3
+            Vector3D::neu(-0.5, -0.5, 0.5),  // 4
+            Vector3D::neu(0.5, -0.5, 0.5),   // 5
+            Vector3D::neu(0.5, 0.5, 0.5),    // 6
+            Vector3D::neu(-0.5, 0.5, 0.5),   // 7
+        ];
+
+        let edges = vec![
+            (0, 1), // Hintere Seite
+            (1, 2), // Hintere Seite
+            (2, 3), // Hintere Seite
+            (3, 0), // Hintere Seite
+            (4, 5), // Vordere Seite
+            (5, 6), // Vordere Seite
+            (6, 7), // Vordere Seite
+            (7, 4), // Vordere Seite
+            (0, 4), // Verbindungen
+            (1, 5), // Verbindungen
+            (2, 6), // Verbindungen
+            (3, 7), // Verbindungen
+        ];
+
+        Mesh { vertices, edges }
+    }
+}
+
 #[derive(Debug, PartialEq)]
-struct Vector3D {
+pub struct Vector3D {
     x: f32,
     y: f32,
     z: f32,
@@ -1103,5 +1146,12 @@ mod tests {
         assert_eq!(punkte.len(), 6); // Start bis Ende = 6 Pixel
         assert_eq!(punkte[0], (0, 0));
         assert_eq!(punkte[5], (2, 5));
+    }
+
+    #[test]
+    fn test_mesh_wuerfel_erzeugung() {
+        let wuerfel = Mesh::wuerfel();
+        assert_eq!(wuerfel.vertices.len(), 8);
+        assert_eq!(wuerfel.edges.len(), 12);
     }
 }
