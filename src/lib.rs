@@ -52,14 +52,14 @@ pub struct Vector3D {
 
 impl Vector3D {
     //konstruktor
-    fn neu(x: f32, y: f32, z: f32) -> Self {
+    pub fn neu(x: f32, y: f32, z: f32) -> Self {
         Vector3D { x, y, z }
     }
 
     /// Mathematisch: Skalierung (Multiplikation mit einem Skalar).
     /// Verlängert oder verkürzt den Vektor um den Faktor `factor`, ohne seine Richtung zu ändern.
     /// Bei einem negativen Faktor dreht sich die Richtung des Vektors um 180 Grad um.
-    fn scale(&self, factor: f32) -> Self {
+    pub fn scale(&self, factor: f32) -> Self {
         let x = factor * self.x;
         let y = factor * self.y;
         let z = factor * self.z;
@@ -70,7 +70,7 @@ impl Vector3D {
     /// Mathematisch: Vektoraddition.
     /// Berechnet die komponentenweise Summe zweier Vektoren.
     /// Geometrisch entspricht dies dem Hintereinanderhängen der beiden Vektorpfeile im Raum.
-    fn add(&self, anderer: &Vector3D) -> Self {
+    pub fn add(&self, anderer: &Vector3D) -> Self {
         let x = self.x + anderer.x;
         let y = self.y + anderer.y;
         let z = self.z + anderer.z;
@@ -82,7 +82,7 @@ impl Vector3D {
     /// Berechnet die komponentenweise Differenz zweier Vektoren.
     /// Geometrisch ergibt dies den Richtungsvektor, der von der Spitze des Vektors `anderer`
     /// direkt zur Spitze des Vektors `self` zeigt (wichtig für Abstands- und Blickrichtungen).
-    fn sub(&self, anderer: &Vector3D) -> Self {
+    pub fn sub(&self, anderer: &Vector3D) -> Self {
         let x = self.x - anderer.x;
         let y = self.y - anderer.y;
         let z = self.z - anderer.z;
@@ -94,14 +94,14 @@ impl Vector3D {
     /// Berechnet die Summe der quadrierten Komponenten (x² + y² + z²).
     /// Dient im Renderer als performancefreundlicher Ersatz für Längenvergleiche,
     /// da hierbei die rechenintensive Quadratwurzel entfällt.
-    fn laenge_quadriert(&self) -> f32 {
+    pub fn laenge_quadriert(&self) -> f32 {
         (self.x * self.x) + (self.y * self.y) + (self.z * self.z)
     }
 
     /// Mathematisch: Euklidische Norm (Der Betrag des Vektors).
     /// Berechnet die reelle, geometrische Länge des Vektors im dreidimensionalen Raum
     /// durch Anwendung des Satzes von Pythagoras (Wurzel aus der quadrierten Länge).
-    fn laenge(&self) -> f32 {
+    pub fn laenge(&self) -> f32 {
         self.laenge_quadriert().sqrt()
     }
 
@@ -110,7 +110,7 @@ impl Vector3D {
     /// Ausgangsvektoren steht. Die Richtung folgt der Rechten-Hand-Regel.
     /// Die Länge des Ergebnisvektors entspricht dem Flächeninhalt des Parallelogramms,
     /// das von beiden Vektoren aufgespannt wird (essenziell für Dreiecksnormalen und Kamerasysteme).
-    fn cross(&self, anderer: &Vector3D) -> Vector3D {
+    pub fn cross(&self, anderer: &Vector3D) -> Vector3D {
         let x = (self.y * anderer.z) - (self.z * anderer.y);
         let y = (self.z * anderer.x) - (self.x * anderer.z);
         let z = (self.x * anderer.y) - (self.y * anderer.x);
@@ -133,7 +133,7 @@ impl Vector3D {
     /// # Panics / Edge Cases
     /// Wenn der Vektor eine Länge von `0.0` hat (Nullvektor), führt die Division
     /// durch Null dazu, dass die Komponenten des Ergebnisvektors `f32::NAN` werden.
-    fn normalisiere(&self) -> Vector3D {
+    pub fn normalisiere(&self) -> Vector3D {
         let laenge = self.laenge();
 
         if laenge == 0.0 {
@@ -163,7 +163,7 @@ impl Vector3D {
     /// * ** 1.0**: Vektoren sind absolut identisch (Parallel, Winkel 0°).
     /// * ** 0.0**: Vektoren stehen exakt senkrecht aufeinander (Orthogonal, Winkel 90°).
     /// * **-1.0**: Vektoren zeigen in exakt entgegengesetzte Richtungen (Winkel 180°).
-    fn skalarprodukt(&self, anderer: &Vector3D) -> f32 {
+    pub fn skalarprodukt(&self, anderer: &Vector3D) -> f32 {
         (self.x * anderer.x) + (self.y * anderer.y) + (self.z * anderer.z)
     }
 }
@@ -174,7 +174,7 @@ impl Vector3D {
 // * **Mittelfinger:** Z-Achse (zeigt aus dem Bildschirm heraus auf den Betrachter)
 
 #[derive(Debug, PartialEq)]
-struct Vector4D {
+pub struct Vector4D {
     x: f32,
     y: f32,
     z: f32,
@@ -201,7 +201,7 @@ impl Vector4D {
     /// Wenn die homogene Komponente `w` exakt `0.0` beträgt (Punkt befindet sich im Ursprung
     /// der Kameraebene), wird eine Division durch Null verhindert und stattdessen ein
     /// sicherer Nullvektor `Vector3D::neu(0.0, 0.0, 0.0)` zurückgegeben.
-    fn zu_ndc_space(&self) -> Vector3D {
+    pub fn zu_ndc_space(&self) -> Vector3D {
         let tiefenwert_w = self.w;
 
         if tiefenwert_w == 0.0 {
@@ -217,13 +217,13 @@ impl Vector4D {
 }
 
 #[derive(Debug, PartialEq)]
-struct Matrix4D {
+pub struct Matrix4D {
     m: [[f32; 4]; 4],
 }
 
 impl Matrix4D {
     //konstruktor -> Einheitsmatrix
-    fn identitaet() -> Self {
+    pub fn identitaet() -> Self {
         Matrix4D {
             m: [
                 [1.0, 0.0, 0.0, 0.0],
@@ -235,7 +235,7 @@ impl Matrix4D {
     }
 
     //konstruktor -> Nullmatrix
-    fn nuller() -> Self {
+    pub fn nuller() -> Self {
         Matrix4D { m: [[0.0; 4]; 4] }
     }
 
@@ -246,7 +246,7 @@ impl Matrix4D {
     ///
     /// # Verwendung im Renderer
     /// Verschiebt 3D-Objekte oder die Kamera frei durch den virtuellen Raum.
-    fn translation(vector: &Vector3D) -> Self {
+    pub fn translation(vector: &Vector3D) -> Self {
         let mut mat = Matrix4D::identitaet();
 
         mat.m[0][3] = vector.x;
@@ -264,7 +264,7 @@ impl Matrix4D {
     /// # Verwendung im Renderer
     /// Erlaubt es, 3D-Modelle in den drei Raumachsen unabhängig voneinander zu strecken (Faktor > 1.0)
     /// oder zu stauchen (Faktor < 1.0).
-    fn skalierung(skal_x: f32, skal_y: f32, skal_z: f32) -> Self {
+    pub fn skalierung(skal_x: f32, skal_y: f32, skal_z: f32) -> Self {
         let mut mat = Matrix4D::identitaet();
 
         mat.m[0][0] = skal_x;
@@ -285,7 +285,7 @@ impl Matrix4D {
     ///
     /// # Winkelmaß
     /// Erwartet den Winkel im **Bogenmaß** (Radians). Ein Vollkreis entspricht 2 * PI.
-    fn rotation_z(rot_winkel: f32) -> Self {
+    pub fn rotation_z(rot_winkel: f32) -> Self {
         let mut mat = Matrix4D::identitaet();
         let cos = rot_winkel.cos();
         let sin = rot_winkel.sin();
@@ -309,7 +309,7 @@ impl Matrix4D {
     ///
     /// # Winkelmaß
     /// Erwartet den Winkel im **Bogenmaß** (Radians). Ein Vollkreis entspricht 2 * PI.
-    fn rotation_y(rot_winkel: f32) -> Self {
+    pub fn rotation_y(rot_winkel: f32) -> Self {
         let mut mat = Matrix4D::identitaet();
         let cos = rot_winkel.cos();
         let sin = rot_winkel.sin();
@@ -333,7 +333,7 @@ impl Matrix4D {
     ///
     /// # Winkelmaß
     /// Erwartet den Winkel im **Bogenmaß** (Radians). Ein Vollkreis entspricht 2 * PI.
-    fn rotation_x(rot_winkel: f32) -> Self {
+    pub fn rotation_x(rot_winkel: f32) -> Self {
         let mut mat = Matrix4D::identitaet();
         let cos = rot_winkel.cos();
         let sin = rot_winkel.sin();
@@ -364,7 +364,7 @@ impl Matrix4D {
     ///
     /// Da am Ende die vierte Komponente (w) bei Standardtransformationen 1.0 bleibt,
     /// gibt die Funktion direkt einen klassischen `Vector3D` mit den neuen Raumkoordinaten zurück.
-    fn multipliziere_punkt(&self, punkt: &Vector3D) -> Vector3D {
+    pub fn multipliziere_punkt(&self, punkt: &Vector3D) -> Vector3D {
         let x = (self.m[0][0] * punkt.x)
             + (self.m[0][1] * punkt.y)
             + (self.m[0][2] * punkt.z)
@@ -394,7 +394,7 @@ impl Matrix4D {
     /// Die Matrixmultiplikation ist nicht kommutativ (`A * B != B * A`). Die Reihenfolge
     /// ist entscheidend dafür, ob ein Objekt erst rotiert und dann verschoben wird,
     /// oder umgekehrt.
-    fn multipliziere_matrix(&self, andere: &Matrix4D) -> Matrix4D {
+    pub fn multipliziere_matrix(&self, andere: &Matrix4D) -> Matrix4D {
         let mut mtrx = Matrix4D::nuller();
         for zln in 0..=3 {
             for spltn in 0..=3 {
@@ -423,7 +423,7 @@ impl Matrix4D {
     /// bildet die exakte Zeile-mal-Spalte-Multiplikation der 4x4-Matrix ab:
     /// * `x`, `y`, `z` fangen Translation, Rotation und Skalierung ein.
     /// * `w` berechnet sich aus der vierten Zeile und speichert bei Projektionsmatrizen die relative Z-Tiefe.
-    fn multipliziere_vektor_homogen(&self, punkt: &Vector3D) -> Vector4D {
+    pub fn multipliziere_vektor_homogen(&self, punkt: &Vector3D) -> Vector4D {
         let x = (self.m[0][0] * punkt.x)
             + (self.m[0][1] * punkt.y)
             + (self.m[0][2] * punkt.z)
@@ -456,7 +456,7 @@ impl Matrix4D {
     /// Bildet die dreidimensionale Pyramide des Kamerasichtfelds (Frustum o Sichtstumpf) auf einen
     /// standardisierten, würfelförmigen Raum ab (Normalized Device Coordinates / NDC, von -1.0 bis 1.0).
     /// Sie verzerrt den Raum so, dass weiter entfernte Objekte nach der Division durch `w` kleiner werden.
-    fn perspektive(fov_rad: f32, aspect: f32, near: f32, far: f32) -> Self {
+    pub fn perspektive(fov_rad: f32, aspect: f32, near: f32, far: f32) -> Self {
         let mut mat = Matrix4D::nuller();
 
         // Berechne den Skalierungsfaktor basierend auf dem Sichtfeld
@@ -479,13 +479,13 @@ impl Matrix4D {
     }
 }
 
-struct Viewport {
+pub struct Viewport {
     breite: u32,
     hoehe: u32,
 }
 
 impl Viewport {
-    fn neu(breite: u32, hoehe: u32) -> Self {
+    pub fn neu(breite: u32, hoehe: u32) -> Self {
         Viewport { breite, hoehe }
     }
 
@@ -508,7 +508,7 @@ impl Viewport {
     /// Die Ergebnisse werden mittels `as i32` gecastet. Punkte außerhalb des sichtbaren
     /// Bereichs (NDC < -1.0 oder > 1.0) erzeugen planmäßig negative Pixelkoordinaten oder
     /// Werte größer als die Fensterauflösung, welche im späteren Line-Clipper abgefangen werden.
-    fn transformiere(&self, ndc_pkt: &Vector3D) -> (i32, i32) {
+    pub fn transformiere(&self, ndc_pkt: &Vector3D) -> (i32, i32) {
         let x_pxl = ((ndc_pkt.x + 1.0) * 0.5 * self.breite as f32) as i32;
         let y_pxl = ((1.0 - ndc_pkt.y) * 0.5 * self.hoehe as f32) as i32;
 
@@ -547,7 +547,7 @@ impl Viewport {
 /// * **Rückwärts-Linien:** Wenn der Endpunkt links vom Startpunkt liegt (`x_start > x_end`),
 ///   wird die Schrittrichtung automatisch invertiert (`sx = -1`).
 /// * **Identische Punkte:** Wenn Start- und Endpunkt übereinstimmen, wird ein einzelnes Pixel zurückgegeben.
-fn bresenham_linie(x_start: i32, y_start: i32, x_end: i32, y_end: i32) -> Vec<(i32, i32)> {
+pub fn bresenham_linie(x_start: i32, y_start: i32, x_end: i32, y_end: i32) -> Vec<(i32, i32)> {
     let mut punkte = Vec::new();
 
     //abstände berechnen
