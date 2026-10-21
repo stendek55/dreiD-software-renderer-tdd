@@ -8,14 +8,15 @@ const BREITE: usize = 800;
 const HOEHE: usize = 600;
 
 fn main() {
+    println!("#####-----steuerung-----#####");
+    println!("RICHTUNGEN -> | w ▲ | a ◀ | s ▼ | d ▶ |");
+    println!("ROTATIONEN -> | x | y | z | -> ACHSEN");
+    println!("ENTFERNUNG -> | j - entfernt | k - heran |");
+
     let mut window = Window::new("3D-stendek55", BREITE, HOEHE, WindowOptions::default()).unwrap();
 
     // 42 (Frames per Second).
     window.set_target_fps(42);
-
-    // =========================================================================
-    // 1. EINMALIGE INITIALISIERUNG DER 3D-GEOMETRIE & KAMERA (VOR DER SCHLEIFE)
-    // =========================================================================
 
     // Lädt das Würfel-Mesh
     let wuerfel = Mesh::wuerfel();
@@ -70,6 +71,12 @@ fn main() {
         }
         if window.is_key_down(Key::Z) {
             rot_z_winkel += rotations_speed;
+        }
+        if window.is_key_down(Key::J) {
+            position = position.sub(&Vector3D::neu(0.0, 0.0, bewegungs_speed * 2.0)); // schiebe in tiefe
+        }
+        if window.is_key_down(Key::K) && position.z < -1.1 {
+            position = position.add(&Vector3D::neu(0.0, 0.0, bewegungs_speed * 2.0)); // komm näher ran
         }
 
         // ---------------------------------------------------------------------
