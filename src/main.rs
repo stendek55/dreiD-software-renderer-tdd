@@ -33,6 +33,14 @@ fn main() {
     // Schrittgeschwindigkeit für die Bewegung pro Frame
     let bewegungs_speed = 0.05;
 
+    // Startrotationen im Bogenmaß (0.0 bedeutet unrotiert)
+    let mut rot_x_winkel: f32 = 0.0;
+    let mut rot_y_winkel: f32 = 0.0;
+    let mut rot_z_winkel: f32 = 0.0;
+
+    // Drehgeschwindigkeit pro Frame
+    let rotations_speed = 0.05;
+
     // Erstellt den eigentlichen Pixel-Speicher für das Fenster (800 * 600 = 480.000 u32-Zahlen).
     // Jede Zahl repräsentiert die Farbe eines Pixels im Hex-Format: 0x00RRGGBB.
     let mut framebuffer = vec![0u32; BREITE * HOEHE];
@@ -54,11 +62,36 @@ fn main() {
         if window.is_key_down(Key::S) {
             position = position.sub(&Vector3D::neu(0.0, bewegungs_speed, 0.0)); // Unten
         }
+        if window.is_key_down(Key::Y) {
+            rot_y_winkel += rotations_speed; // Dreht den Würfel um die vertikale Y-Achse
+        }
+        if window.is_key_down(Key::X) {
+            rot_x_winkel += rotations_speed; // Neigt den Würfel um die horizontale X-Achse
+        }
+        if window.is_key_down(Key::Z) {
+            rot_z_winkel += rotations_speed;
+        }
 
         // ---------------------------------------------------------------------
         // B. WELT-MATRIX AKTUALISIEREN
         // ---------------------------------------------------------------------
-        let welt_matrix = Matrix4D::translation(&position);
+        // Erstelle die Rotationsmatrizen aus den aktuellen Winkeln
+        let rot_y = Matrix4D::rotation_y(rot_y_winkel);
+        let rot_x = Matrix4D::rotation_x(rot_x_winkel);
+        let rot_z = Matrix4D::rotation_z(rot_z_winkel);
+
+        // Kombiniere die Rotationen
+        let gesamt_rotation = rot_x
+            .multipliziere_matrix(&rot_y)
+            .multipliziere_matrix(&rot_z);
+
+        // Erstelle die Translation basierend auf der aktuellen Position
+        let verschiebung = Matrix4D::translation(&position);
+
+        // Kombiniere beides zur finalen Welt-Matrix
+        // WICHTIG: Die Verschiebung steht links. Der Würfel rotiert also erst im Ursprung
+        // um sein eigenes Zentrum und wird danach an seine Position im Raum verschoben.
+        let welt_matrix = verschiebung.multipliziere_matrix(&gesamt_rotation);
 
         // ---------------------------------------------------------------------
         // C. GRAPHICS PIPELINE (3D ZU 2D PROJEKTION)
