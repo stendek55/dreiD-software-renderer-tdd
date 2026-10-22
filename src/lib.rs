@@ -13,7 +13,7 @@ impl Mesh {
     /// Erzeugt einen Standard-Würfel mit Kantenlänge 1.0 im Ursprung.
     /// Perfekt als Standard-Geometrie für den Renderer.
     pub fn wuerfel() -> Self {
-        let vertices = vec![
+        let mut vertices = vec![
             Vector3D::neu(-0.5, -0.5, -0.5), // 0
             Vector3D::neu(0.5, -0.5, -0.5),  // 1
             Vector3D::neu(0.5, 0.5, -0.5),   // 2
@@ -24,7 +24,7 @@ impl Mesh {
             Vector3D::neu(-0.5, 0.5, 0.5),   // 7
         ];
 
-        let edges = vec![
+        let mut edges = vec![
             (0, 1), // Hintere Seite
             (1, 2), // Hintere Seite
             (2, 3), // Hintere Seite
@@ -38,6 +38,32 @@ impl Mesh {
             (2, 6), // Verbindungen
             (3, 7), // Verbindungen
         ];
+
+        // Anzahl der inneren Linien pro Fläche
+        let linien_anzahl = 4;
+
+        for i in 1..=linien_anzahl {
+            // Berechne den Interpolationsfaktor zwischen 0.0 und 1.0
+            let t = i as f32 / (linien_anzahl + 1) as f32;
+
+            // 1. Linien auf der Vorderseite (Z = 0.5) von links nach rechts interpolieren
+            let start_v = Vector3D::neu(-0.5 + t, -0.5, 0.5);
+            let end_v = Vector3D::neu(-0.5 + t, 0.5, 0.5);
+            vertices.push(start_v);
+            let idx_start = vertices.len() - 1;
+            vertices.push(end_v);
+            let idx_end = vertices.len() - 1;
+            edges.push((idx_start, idx_end));
+
+            // 2. Linien auf der Rückseite (Z = -0.5) von links nach rechts interpolieren
+            let start_h = Vector3D::neu(-0.5 + t, -0.5, -0.5);
+            let end_h = Vector3D::neu(-0.5 + t, 0.5, -0.5);
+            vertices.push(start_h);
+            let idx_start_h = vertices.len() - 1;
+            vertices.push(end_h);
+            let idx_end_h = vertices.len() - 1;
+            edges.push((idx_start_h, idx_end_h));
+        }
 
         Mesh { vertices, edges }
     }
