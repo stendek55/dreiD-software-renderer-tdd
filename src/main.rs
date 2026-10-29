@@ -7,6 +7,12 @@ use drei_d_software_renderer_tdd::{Matrix4D, Mesh, Vector3D, Viewport, bresenham
 const BREITE: usize = 800;
 const HOEHE: usize = 600;
 
+struct RollZustand {
+    is_rolling: bool,
+    fortschritt: f32,
+    ziel_position: Vector3D,
+}
+
 fn main() {
     println!("#####-----steuerung-----#####");
     println!("RICHTUNGEN -> | w ▲ | a ◀ | s ▼ | d ▶ |");
@@ -46,6 +52,18 @@ fn main() {
     // Jede Zahl repräsentiert die Farbe eines Pixels im Hex-Format: 0x00RRGGBB.
     let mut framebuffer = vec![0u32; BREITE * HOEHE];
 
+    // Start-Zustand des Würfels
+    let mut basis_rotation = Matrix4D::identitaet();
+
+    // Roll-Zustand initialisieren
+    let mut roll = RollZustand {
+        is_rolling: false,
+        fortschritt: 0.0,
+        ziel_position: Vector3D::neu(0.0, 0.0, -3.0),
+    };
+
+    let roll_schritte = 0.05;
+
     // Läuft so lange, wie das Fenster offen ist und nicht die ESC-Taste gedrückt wird.
     while window.is_open() && !window.is_key_down(Key::Escape) {
         // ---------------------------------------------------------------------
@@ -78,6 +96,12 @@ fn main() {
         if window.is_key_down(Key::K) && position.z < -1.1 {
             position = position.add(&Vector3D::neu(0.0, 0.0, bewegungs_speed * 2.0)); // komm näher ran
         }
+        //rechte pfeiltaste -> würfel nach rechts rollen
+        if !roll.is_rolling && window.is_key_down(Key::Right) {
+            roll.is_rolling = true;
+            roll.fortschritt = 0.0;
+            roll.ziel_position = position.add(&Vector3D::neu(1.0, 0.0, 0.0));
+        }
 
         // ---------------------------------------------------------------------
         // B. WELT-MATRIX AKTUALISIEREN
@@ -92,17 +116,49 @@ fn main() {
             .multipliziere_matrix(&rot_y)
             .multipliziere_matrix(&rot_z);
 
-        // Erstelle die Translation basierend auf der aktuellen Position
-        let verschiebung = Matrix4D::translation(&position);
+        if roll.is_rolling {
+            // Erhöhe den Fortschritt einfach um den festen Frame-Wert
+            roll.fortschritt += roll_schritte;
 
-        // Kombiniere beides zur finalen Welt-Matrix
-        // WICHTIG: Die Verschiebung steht links. Der Würfel rotiert also erst im Ursprung
-        // um sein eigenes Zentrum und wird danach an seine Position im Raum verschoben.
-        let welt_matrix = verschiebung.multipliziere_matrix(&gesamt_rotation);
+            if roll.fortschritt >= 1.0 {
+                roll.fortschritt = 1.0;
+                position = roll.ziel_position; // Position permanent machen
+
+                // Die vollendete 90°-Drehung fest in die Basis-Rotation einbrennen
+                let rot_90 = Matrix4D::rotation_z(-(PI / 2.0));
+                basis_rotation = rot_90.multipliziere_matrix(&basis_rotation);
+
+                // Zurücksetzen für den nächsten Tastendruck
+                roll.is_rolling = false;
+                roll.fortschritt = 0.0;
+            }
+        }
 
         // ---------------------------------------------------------------------
         // C. GRAPHICS PIPELINE (3D ZU 2D PROJEKTION)
         // ---------------------------------------------------------------------
+        let welt_matrix = if roll.is_rolling {
+            let aktueller_winkel = roll.fortschritt * -(PI / 2.0);
+            let kanten_offset = Vector3D::neu(0.5, -0.5, 0.0); // Untere rechte Kante
+
+            // Deine funktionierende Matrix-Kette
+            let t_hin = Matrix4D::translation(&kanten_offset);
+            let rot = Matrix4D::rotation_z(aktueller_winkel);
+            let t_zurueck = Matrix4D::translation(&kanten_offset.scale(-1.0));
+
+            let kanten_roll_matrix = t_hin
+                .multipliziere_matrix(&rot)
+                .multipliziere_matrix(&t_zurueck);
+
+            Matrix4D::translation(&position)
+                .multipliziere_matrix(&kanten_roll_matrix)
+                .multipliziere_matrix(&basis_rotation)
+                .multipliziere_matrix(&gesamt_rotation)
+        } else {
+            Matrix4D::translation(&position)
+                .multipliziere_matrix(&basis_rotation)
+                .multipliziere_matrix(&gesamt_rotation)
+        };
         let screen_punkte: Vec<(i32, i32)> = wuerfel
             .vertices
             .iter()

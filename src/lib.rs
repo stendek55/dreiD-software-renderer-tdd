@@ -69,7 +69,7 @@ impl Mesh {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Vector3D {
     x: f32,
     y: f32,
