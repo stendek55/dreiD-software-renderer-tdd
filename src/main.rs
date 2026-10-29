@@ -18,6 +18,7 @@ fn main() {
     println!("RICHTUNGEN -> | w ▲ | a ◀ | s ▼ | d ▶ |");
     println!("ROTATIONEN -> | x | y | z | -> ACHSEN");
     println!("ENTFERNUNG -> | j - entfernt | k - heran |");
+    println!("ROLLEN     -> | → rechts |");
 
     let mut window = Window::new("3D-stendek55", BREITE, HOEHE, WindowOptions::default()).unwrap();
 

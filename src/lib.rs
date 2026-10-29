@@ -40,22 +40,13 @@ impl Mesh {
         ];
 
         // Anzahl der inneren Linien pro Fläche
-        let linien_anzahl = 4;
+        let linien_anzahl = 55;
 
         for i in 1..=linien_anzahl {
             // Berechne den Interpolationsfaktor zwischen 0.0 und 1.0
             let t = i as f32 / (linien_anzahl + 1) as f32;
 
-            // 1. Linien auf der Vorderseite (Z = 0.5) von links nach rechts interpolieren
-            let start_v = Vector3D::neu(-0.5 + t, -0.5, 0.5);
-            let end_v = Vector3D::neu(-0.5 + t, 0.5, 0.5);
-            vertices.push(start_v);
-            let idx_start = vertices.len() - 1;
-            vertices.push(end_v);
-            let idx_end = vertices.len() - 1;
-            edges.push((idx_start, idx_end));
-
-            // 2. Linien auf der Rückseite (Z = -0.5) von links nach rechts interpolieren
+            // Linien auf der Rückseite (Z = -0.5) von links nach rechts interpolieren
             let start_h = Vector3D::neu(-0.5 + t, -0.5, -0.5);
             let end_h = Vector3D::neu(-0.5 + t, 0.5, -0.5);
             vertices.push(start_h);
